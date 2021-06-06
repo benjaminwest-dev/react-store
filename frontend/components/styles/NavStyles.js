@@ -10,7 +10,7 @@ const NavStyles = styled.ul`
   button {
     padding: 1rem 3rem;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     position: relative;
     text-transform: uppercase;
     font-weight: 900;
@@ -48,7 +48,7 @@ const NavStyles = styled.ul`
     &:hover,
     &:focus {
       outline: none;
-      text-decoration:none;
+      text-decoration: none;
       &:after {
         width: calc(100% - 60px);
       }
