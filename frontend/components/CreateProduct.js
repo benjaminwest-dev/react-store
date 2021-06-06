@@ -1,21 +1,68 @@
+import gql from 'graphql-tag';
+import { useMutation } from '@apollo/client';
+import Router from 'next/router';
 import useForm from '../lib/useForm';
 import Form from './styles/Form';
+import DisplayError from './ErrorMessage';
+import { ALL_PRODUCTS_QUERY } from './Products';
+
+const CREATE_PRODUCT_MUTATION = gql`
+  mutation CREATE_PRODUCT_MUTATION(
+    #What's getting passed in and what are the types
+    #This is not JS, its Graphql
+    $name: String!
+    $description: String!
+    $price: Int!
+    $image: Upload
+  ) {
+    createProduct(
+      data: {
+        name: $name
+        description: $description
+        price: $price
+        status: "AVAILABLE"
+        # ability to do simultaneous creations is a keystone thing
+        photo: { create: { image: $image, altText: $name } }
+      }
+    ) {
+      id
+      price
+      description
+    }
+  }
+`;
 
 export default function CreateProduct() {
-  const { inputs, handleChange } = useForm({
+  const { inputs, handleChange, clearForm, resetForm } = useForm({
     image: '',
     name: '',
     price: 0,
     description: '',
   });
+
+  const [createProduct, { loading, error, data }] = useMutation(
+    CREATE_PRODUCT_MUTATION,
+    {
+      variables: inputs,
+      refetchQueries: [{ query: ALL_PRODUCTS_QUERY }],
+    }
+  );
   return (
     <Form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        console.log({ inputs });
+        // Submit the input fields to the backend
+        const res = await createProduct();
+        // You can also call it this way
+        // const res = await createProduct({variables: inputs});
+        clearForm();
+        Router.push({
+          pathname: `/product/${res.data.createProduct.id}`,
+        });
       }}
     >
-      <fieldset aria-busy>
+      <DisplayError error={error} />
+      <fieldset disabled={loading} aria-busy={loading}>
         <label htmlFor="name">
           Image
           <input
